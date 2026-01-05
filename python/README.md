@@ -4,53 +4,47 @@ This is a Python implementation of a credential testing tool for ethical hacking
 
 ## Features
 
-- Tests login combinations on target websites
-- Uses requests library for HTTP requests
-- Implements rate limiting and retry logic
-- Progress tracking and safety confirmations
-- Beautiful console output with emojis
+- **Cross-Platform**: Optimized for both Windows and Mac.
+- **Resumable**: Automatically saves progress to `checkpoint.json`. If interrupted (e.g., power loss, Ctrl+C), it resumes exactly where it left off.
+- **Persistent Logging**: Finds are immediately saved to `valid_credentials.txt`.
+- **Robust**: Handles network errors and retries gracefully.
 
 ## Prerequisites
 
-- Python 3.7 or higher
-- Required packages: requests, beautifulsoup4
+- [Python 3.7+](https://www.python.org/downloads/)
 
 ## Installation
 
-```bash
-cd python
-pip install requests beautifulsoup4
-```
+1. Navigate to the python directory:
+
+   ```bash
+   cd python
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 ## Usage
 
+Run the script:
+
 ```bash
-python3 main.py
+python main.py
 ```
 
-## Configuration
+or on Mac/Linux:
 
-The script tests:
-- User IDs: 1000000000 to 9999999999 (10-digit range)
-- Passwords: 11111 to 99999 (5-digit range)
-- Target: https://parentsalarmapp.com
+```bash
+./main.py
+```
 
-## Safety Features
+## Output Files
 
-- Rate limiting (0.2s delay between requests)
-- Retry logic (3 attempts per request)
-- Safety confirmation before running
-- Progress tracking
-- Early termination after finding 5 valid credentials
+- `valid_credentials.txt`: Contains all successfully found username/password combinations.
+- `checkpoint.json`: Stores the current progress. Do not delete this if you want to resume.
 
-## ⚠️ Ethical Use Only
+## Safety & Ethics
 
 This tool is for educational and authorized testing purposes only. Always ensure you have explicit permission before testing any website.
-
-## Project Structure
-
-```
-python/
-├── main.py              # Main Python script
-└── README.md           # This file
-```
