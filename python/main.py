@@ -77,7 +77,7 @@ class BruteforceSession:
     def log_success(self, user_id, password):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         entry = f"[{timestamp}] User: {user_id} | Pass: {password}\n"
-        print(f"\n🎉 SUCCESS FOUND: {user_id}:{password}")
+        print(f"\n SUCCESS FOUND: {user_id}:{password}")
         
         self.found_credentials.append({'user': user_id, 'pass': password})
         

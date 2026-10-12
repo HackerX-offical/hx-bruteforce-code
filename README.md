@@ -53,7 +53,7 @@ Both tools are configured to test:
 - **User ID Range**: 1000000000 to 9999999999 (10-digit numbers)
 - **Password Range**: 11111 to 99999 (5-digit numbers)
 
-## ⚠️ Important Safety Notice
+##  Important Safety Notice
 
 **ETHICAL USE ONLY**: These tools are designed for educational purposes and authorized penetration testing only.
 
@@ -76,3 +76,8 @@ Both tools are configured to test:
 | **Setup**     | `pip install`       | `npm install`         |
 
 Choose whichever language you are more comfortable with; the results will be identical.
+
+## License
+
+Licensed under the [HackerX License](./LICENSE). Redistributions must retain copyright,
+license text, and [NOTICE](./NOTICE) attribution per the license terms.

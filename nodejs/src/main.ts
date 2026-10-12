@@ -105,7 +105,7 @@ class CredentialTester {
     const timestamp = new Date().toISOString().replace("T", " ").split(".")[0];
     const entry = `[${timestamp}] User: ${userId} | Pass: ${password}\n`;
 
-    console.log(`\n🎉 SUCCESS FOUND: ${userId}:${password}`);
+    console.log(`\n SUCCESS FOUND: ${userId}:${password}`);
     this.foundCredentials.push({ userId, password });
 
     try {
