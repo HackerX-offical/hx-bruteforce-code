@@ -47,11 +47,26 @@ npm run dev
 
 ## Configuration
 
-Both tools are configured to test:
+**Authorized targets only.** Configure via environment variables (Node.js). Defaults use a small ID/password window for lab runs — widen only with written permission.
 
-- **Target**: https://parentsalarmapp.com
-- **User ID Range**: 1000000000 to 9999999999 (10-digit numbers)
-- **Password Range**: 11111 to 99999 (5-digit numbers)
+| Variable | Purpose |
+| --- | --- |
+| `HBF_BASE_URL` | Required. Base URL of the authorized login target |
+| `HBF_LOGIN_URL` | Login POST URL (default: `{BASE_URL}/`) |
+| `HBF_SUCCESS_MARKERS` | Comma-separated success substrings (default: `dashboard`) |
+| `HBF_ID_START` / `HBF_ID_END` | User id numeric range |
+| `HBF_PASS_START` / `HBF_PASS_END` | Password numeric range |
+
+Example (local lab):
+
+```bash
+export HBF_BASE_URL="https://auth.lab.example"
+export HBF_ID_START=1000
+export HBF_ID_END=1002
+export HBF_PASS_START=10000
+export HBF_PASS_END=10002
+cd nodejs && npm run build && npm start
+```
 
 ##  Important Safety Notice
 

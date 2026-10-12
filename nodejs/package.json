@@ -7,17 +7,25 @@
     "dev": "ts-node src/main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "jest"
   },
-  "keywords": ["security", "testing", "ethical-hacking"],
+  "keywords": [
+    "security",
+    "testing",
+    "ethical-hacking"
+  ],
   "author": "",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "axios": "^1.6.0",
     "cheerio": "^1.0.0-rc.12"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   }
