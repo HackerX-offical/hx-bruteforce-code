@@ -1,96 +1,49 @@
-# Credential Tester Project
+# hx-bruteforce-code
 
-This project contains two robust implementations of a credential testing tool - one in Python and one in TypeScript/Node.js. Both tools are functionally identical and designed for long-running, reliable testing.
+Dual Python and Node credential testers with checkpoint resume for authorized targets.
 
-## Project Structure
+## Why this exists
 
-```
-Test/
-├── python/                 # Python implementation
-│   ├── main.py            # Main Python script
-│   ├── requirements.txt   # Python dependencies
-│   └── README.md          # Python specific docs
-├── nodejs/                # Node.js/TypeScript implementation
-│   ├── src/
-│   │   └── main.ts        # Main TypeScript source
-│   ├── package.json       # Node.js dependencies
-│   └── README.md          # Node.js specific docs
-└── README.md              # This file
-```
+Long-running login tests need checkpoints and rate limits. Implementations mirror each other for lab comparisons.
 
-## Shared Features (Both Versions)
+## Features
 
-- **Resume Capability**: Automatically saves progress to `checkpoint.json`. You can stop and restart the script at any time without losing progress.
-- **Instant Logging**: Successfully found credentials are immediately saved to `valid_credentials.txt`.
-- **Graceful Shutdown**: Handles interruptions (Ctrl+C) safely by saving state before exiting.
-- **Rate Limiting**: Respects server resources with appropriate delays.
-- **Retry Logic**: Automatically retries failed requests due to network issues.
-- **Cross-Platform**: Works seamlessly on Windows, Mac, and Linux.
+- Resume via `checkpoint.json`
+- Env-driven target URLs (Node)
+- Valid hits appended to `valid_credentials.txt`
 
-## Quick Start
-
-### Python Version
+## Install
 
 ```bash
-cd python
-pip install -r requirements.txt or pip3 install -r requirements.txt
-python main.py or python3 main.py
+git clone https://github.com/HackerX-offical/hx-bruteforce-code.git
+cd hx-bruteforce-code
+cd nodejs && npm install
+cd ../python && pip install -r requirements.txt
 ```
 
-### Node.js Version
+## Quick start
 
 ```bash
-cd nodejs
-npm install
-npm run dev
+cd nodejs && HBF_BASE_URL=https://authorized-lab.example npm run dev
 ```
 
-## Configuration
+## Output
 
-**Authorized targets only.** Configure via environment variables (Node.js). Defaults use a small ID/password window for lab runs — widen only with written permission.
+Checkpoint JSON and `valid_credentials.txt` on success.
 
-| Variable | Purpose |
-| --- | --- |
-| `HBF_BASE_URL` | Required. Base URL of the authorized login target |
-| `HBF_LOGIN_URL` | Login POST URL (default: `{BASE_URL}/`) |
-| `HBF_SUCCESS_MARKERS` | Comma-separated success substrings (default: `dashboard`) |
-| `HBF_ID_START` / `HBF_ID_END` | User id numeric range |
-| `HBF_PASS_START` / `HBF_PASS_END` | Password numeric range |
-
-Example (local lab):
+## Develop
 
 ```bash
-export HBF_BASE_URL="https://auth.lab.example"
-export HBF_ID_START=1000
-export HBF_ID_END=1002
-export HBF_PASS_START=10000
-export HBF_PASS_END=10002
-cd nodejs && npm run build && npm start
+cd nodejs && npm test
 ```
 
-##  Important Safety Notice
+## Architecture
 
-**ETHICAL USE ONLY**: These tools are designed for educational purposes and authorized penetration testing only.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for module layout and extension points.
 
-**Requirements:**
+## Ethics
 
-- You MUST have explicit written permission to test the target website.
-- Respect server resources and implement appropriate rate limiting.
-- Consider the massive scale of testing (billions of combinations).
-
-**Legal Disclaimer**: The authors are not responsible for any misuse of these tools. Users are solely responsible for ensuring they have proper authorization.
-
-## Comparison
-
-| Feature       | Python              | Node.js               |
-| ------------- | ------------------- | --------------------- |
-| **Library**   | `requests`          | `axios`               |
-| **Parsing**   | None (String check) | None (String check)   |
-| **Speed**     | Fast                | Fast (Async)          |
-| **File Size** | Small               | Medium (node_modules) |
-| **Setup**     | `pip install`       | `npm install`         |
-
-Choose whichever language you are more comfortable with; the results will be identical.
+Use only on systems and content you are **authorized** to test. See [SECURITY.md](./SECURITY.md).
 
 ## License
 
