@@ -15,7 +15,7 @@ Long-running login tests need checkpoints and rate limits. Implementations mirro
 ## Install
 
 ```bash
-git clone https://github.com/HackerX-offical/hx-bruteforce-code.git
+git clone https://github.com/HackerX-official/hx-bruteforce-code.git
 cd hx-bruteforce-code
 cd nodejs && npm install
 cd ../python && pip install -r requirements.txt
